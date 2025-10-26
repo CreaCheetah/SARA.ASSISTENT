@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from src.workflows.transcribe_and_return import transcribe_bytes
 
 app = FastAPI()
 
@@ -15,5 +16,9 @@ async def asr_endpoint(file: UploadFile = File(...), language: str = "nl"):
     data = await file.read()
     if not data:
         raise HTTPException(status_code=400, detail="empty file")
-    text = transcribe_bytes(data, suffix=f".{file.filename.split('.')[-1]}", language=language)
+    text = transcribe_bytes(
+        data,
+        suffix=f".{file.filename.split('.')[-1]}",
+        language=language,
+    )
     return {"text": text}
