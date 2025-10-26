@@ -28,7 +28,7 @@ async def twilio_handle_recording(RecordingUrl: str = Form(...), RecordingFormat
     try:
         sid = os.getenv("TWILIO_ACCOUNT_SID", "")
         tok = os.getenv("TWILIO_AUTH_TOKEN", "")
-        audio_url = f"{RecordingUrl}.{RecordingFormat}"
+        audio_url = RecordingUrl
         r = requests.get(audio_url, auth=(sid, tok), timeout=30)
         r.raise_for_status()
 
