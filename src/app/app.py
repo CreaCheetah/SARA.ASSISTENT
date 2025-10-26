@@ -22,3 +22,14 @@ async def asr_endpoint(file: UploadFile = File(...), language: str = "nl"):
         language=language,
     )
     return {"text": text}
+
+from fastapi.responses import FileResponse
+from src.workflows.speak_text import speak_text
+
+@app.post("/tts")
+async def tts_endpoint(text: str):
+    audio_bytes = speak_text(text)
+    tmp_path = "/tmp/output.mp3"
+    with open(tmp_path, "wb") as f:
+        f.write(audio_bytes)
+    return FileResponse(tmp_path, media_type="audio/mpeg", filename="output.mp3")
