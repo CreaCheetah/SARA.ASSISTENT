@@ -1,18 +1,15 @@
-import openai
+from openai import OpenAI
 from pathlib import Path
-from typing import Optional
-from src.ports.audio_asr import AudioASRPort
-from src.infra.settings import settings
 
-class OpenAIWhisperAdapter(AudioASRPort):
+class OpenAIWhisperAdapter:
     def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
+        self.client = OpenAI()
 
-    def transcribe(self, audio_path: Path, language: Optional[str] = None) -> str:
+    def transcribe(self, audio_path: str, language: str = "nl") -> str:
         with open(audio_path, "rb") as audio_file:
-            transcript = openai.Audio.transcriptions.create(
-                model="whisper-1",
+            transcript = self.client.audio.transcriptions.create(
+                model="gpt-4o-mini-transcribe",
                 file=audio_file,
-                language=language or "nl"
+                language=language
             )
         return transcript.text
