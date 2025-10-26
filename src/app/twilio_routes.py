@@ -24,7 +24,7 @@ async def twilio_voice():
     )
 
 @router.post("/twilio/handle_recording", response_class=PlainTextResponse)
-async def twilio_handle_recording(RecordingUrl: str = Form(...), RecordingFormat: str = Form("mp3")):
+async def twilio_handle_recording(RecordingUrl: str = Form(...), RecordingFormat: str = Form("wav")):
     try:
         sid = os.getenv("TWILIO_ACCOUNT_SID", "")
         tok = os.getenv("TWILIO_AUTH_TOKEN", "")
