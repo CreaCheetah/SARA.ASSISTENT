@@ -1,6 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from src.workflows.transcribe_and_return import transcribe_bytes
 from src.app.twilio_routes import router as twilio_router
+from fastapi.responses import StreamingResponse
+from src.workflows.speak_text import speak_text
 
 app = FastAPI()
 
@@ -34,5 +36,14 @@ async def tts_endpoint(text: str):
     with open(tmp_path, "wb") as f:
         f.write(audio_bytes)
     return FileResponse(tmp_path, media_type="audio/mpeg", filename="output.mp3")
+
+@app.get("/tts_get")
+def tts_get(text: str):
+    audio_bytes = speak_text(text)
+    return StreamingResponse(
+        iter([audio_bytes]),
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": 'inline; filename="tts.mp3"'}
+    )
 
 app.include_router(twilio_router)
