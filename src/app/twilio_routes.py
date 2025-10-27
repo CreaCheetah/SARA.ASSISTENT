@@ -4,6 +4,9 @@ from urllib.parse import urlencode
 import os, requests, logging
 from src.workflows.transcribe_and_return import transcribe_bytes
 from src.workflows.speak_text import speak_text
+from fastapi import APIRouter, Form, Request
+import logging
+log = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
 log = logging.getLogger("uvicorn.error")
