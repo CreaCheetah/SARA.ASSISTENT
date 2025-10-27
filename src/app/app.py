@@ -48,3 +48,4 @@ def tts_get(text: str):
     )
 
 app.include_router(twilio_router)
+app.include_router(admin_router)
