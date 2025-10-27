@@ -4,6 +4,8 @@ from src.app.twilio_routes import router as twilio_router
 from fastapi.responses import StreamingResponse
 from src.workflows.speak_text import speak_text
 from src.app.admin import router as admin_router
+from src.infra.logs import setup_logging
+setup_logging()
 
 app = FastAPI()
 
