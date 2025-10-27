@@ -16,6 +16,8 @@ def _base() -> str:
 
 @router.post("/twilio/voice", response_class=PlainTextResponse)
 async def twilio_voice():
+    log.info({"evt":"twilio_voice"})  # <— logt elke inkomende call
+    ...
     action = f"{_base()}/twilio/handle_recording"
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -28,6 +30,7 @@ async def twilio_voice():
 
 @router.post("/twilio/handle_recording", response_class=PlainTextResponse)
 async def twilio_handle_recording(RecordingUrl: str = Form(...), RecordingFormat: str = Form("wav")):
+    log.info({"event": "twilio_handle_recording", "RecordingUrl": RecordingUrl})
     try:
         sid = os.getenv("TWILIO_ACCOUNT_SID", "")
         tok = os.getenv("TWILIO_AUTH_TOKEN", "")
