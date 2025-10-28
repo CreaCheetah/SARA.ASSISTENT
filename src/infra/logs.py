@@ -1,61 +1,86 @@
+# src/infra/logs.py
 import logging
-from sqlalchemy import text
-from .db import engine
+import os
+from datetime import datetime
+from typing import Iterable, List, Dict, Any
+from sqlalchemy import create_engine
 
-TABLE_SQL = """
+# --- DB engine ---
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL env var ontbreekt")
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=2,
+    max_overflow=5,
+)
+
+# --- bootstrap: zorg dat tabel bestaat ---
+DDL = """
 CREATE TABLE IF NOT EXISTS logs (
-  id SERIAL PRIMARY KEY,
-  ts TIMESTAMPTZ DEFAULT NOW(),
-  level TEXT NOT NULL,
-  msg   TEXT NOT NULL
+  id     BIGSERIAL PRIMARY KEY,
+  ts     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  level  VARCHAR(10) NOT NULL,
+  msg    TEXT NOT NULL
 );
 """
+with engine.begin() as conn:
+    conn.exec_driver_sql(DDL)
 
-INSERT_SQL = text("INSERT INTO logs (level, msg) VALUES (:level, :msg)")
-SELECT_SQL = text("""
-  SELECT ts, level, msg
-  FROM logs
-  ORDER BY id DESC
-  LIMIT :limit
-""")
-
+# --- logging handler die naar DB schrijft ---
 class DBHandler(logging.Handler):
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         try:
+            ts = datetime.utcfromtimestamp(record.created)
+            level = record.levelname
             msg = self.format(record)
-            with engine.begin() as c:
-                c.execute(INSERT_SQL, {"level": record.levelname, "msg": msg})
-        except Exception:
+            with engine.begin() as conn:
+                conn.exec_driver_sql(
+                    "INSERT INTO logs (ts, level, msg) VALUES (%s, %s, %s)",
+                    (ts, level, msg),
+                )
+        except Exception:  # geen logging-loop
             pass
 
-def setup_logging():
-    with engine.begin() as c:
-        c.exec_driver_sql(TABLE_SQL)
+def setup_logging(level: str = "INFO") -> None:
     root = logging.getLogger()
-    root.setLevel(logging.INFO)
+    root.setLevel(getattr(logging, level.upper(), logging.INFO))
+
+    # console voor Render logs
+    if not any(isinstance(h, logging.StreamHandler) for h in root.handlers):
+        sh = logging.StreamHandler()
+        sh.setFormatter(logging.Formatter("%(levelname)s %(message)s"))
+        root.addHandler(sh)
+
+    # database handler
     if not any(isinstance(h, DBHandler) for h in root.handlers):
-        h = DBHandler()
-        h.setFormatter(logging.Formatter("%(asctime)s  %(levelname)s  %(message)s"))
-        root.addHandler(h)
+        dh = DBHandler()
+        dh.setFormatter(logging.Formatter("%(message)s"))
+        root.addHandler(dh)
 
-def get_events(limit: int = 200, level: str | None = None, q: str | None = None):
+# --- ophalen voor dashboard ---
+def get_events(limit: int = 200, level: str | None = None, q: str | None = None) -> List[Dict[str, Any]]:
     sql = "SELECT ts, level, msg FROM logs"
-    conds, params = [], {}
+    params: list[Any] = []
+    where: list[str] = []
 
-    if level and level.upper() != "ALL":
-        conds.append("level = :level")
-        params["level"] = level.upper()
+    if level and level.upper() in {"INFO", "WARN", "ERROR"}:
+        where.append("level = %s")
+        params.append(level.upper())
 
     if q:
-        conds.append("msg ILIKE :q")
-        params["q"] = f"%{q}%"
+        where.append("msg ILIKE %s")
+        params.append(f"%{q}%")
 
-    if conds:
-        sql += " WHERE " + " AND ".join(conds)
+    if where:
+        sql += " WHERE " + " AND ".join(where)
 
-    sql += " ORDER BY id DESC LIMIT :limit"
-    params["limit"] = max(1, min(int(limit), 1000))
+    sql += " ORDER BY id DESC LIMIT %s"
+    params.append(int(limit))
 
     with engine.begin() as conn:
-        rows = conn.execute(text(sql), params).mappings().all()
-    return [dict(r) for r in rows]
+        rows = conn.exec_driver_sql(sql, tuple(params)).mappings().all()
+
+    return [{"ts": r["ts"], "level": r["level"], "msg": r["msg"]} for r in rows]
