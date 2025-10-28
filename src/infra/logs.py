@@ -1,40 +1,41 @@
-# src/infra/logs.py
-import os, json, time, logging
-from collections import deque
+import logging
+from sqlalchemy import text
+from .db import engine
 
-_LOG_PATH = "/tmp/events.log"
-
-class JsonLineHandler(logging.Handler):
-    def emit(self, record: logging.LogRecord) -> None:
+class DBHandler(logging.Handler):
+    def emit(self, record):
         try:
-            obj = {
-                "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "level": record.levelname,
-                "msg": record.getMessage(),
-            }
-            with open(_LOG_PATH, "a", encoding="utf-8") as f:
-                f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+            msg  = self.format(record)
+            lvl  = record.levelname
+            with engine.begin() as conn:
+                conn.execute(
+                    text("INSERT INTO logs(level, msg) VALUES (:level, :msg)"),
+                    {"level": lvl, "msg": msg},
+                )
         except Exception:
-            pass  # nooit crashen op logging
+            # logproblemen mogen je app niet stoppen
+            pass
 
-def setup_logging() -> None:
+def setup_logging():
     root = logging.getLogger()
     root.setLevel(logging.INFO)
-    root.addHandler(JsonLineHandler())
-    logging.getLogger("uvicorn.error").setLevel(logging.INFO)
-    logging.getLogger("uvicorn.access").setLevel(logging.INFO)
+    for h in list(root.handlers):
+        root.removeHandler(h)
 
-def get_events(n: int = 200):
-    if not os.path.exists(_LOG_PATH):
-        return []
-    last = deque(maxlen=n)
-    with open(_LOG_PATH, "r", encoding="utf-8") as f:
-        for line in f:
-            last.append(line)
-    out = []
-    for line in last:
-        try:
-            out.append(json.loads(line))
-        except Exception:
-            out.append({"ts": "", "level": "INFO", "msg": line.strip()})
-    return out
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S")
+
+    sh = logging.StreamHandler()
+    sh.setFormatter(fmt)
+    root.addHandler(sh)
+
+    dh = DBHandler()
+    dh.setFormatter(fmt)
+    root.addHandler(dh)
+
+def get_events(limit: int = 200):
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("SELECT ts, level, msg FROM logs ORDER BY id DESC LIMIT :lim"),
+            {"lim": limit},
+        ).fetchall()
+    return [{"ts": r.ts, "level": r.level, "msg": r.msg} for r in rows]
