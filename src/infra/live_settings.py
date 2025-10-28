@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, Tuple, Optional
 import json
 from src.infra.db import engine
+from sqlalchemy import text
 
 DEFAULTS: Dict[str, Any] = {
     "bot_enabled": True,
@@ -57,18 +58,18 @@ def get(key: str) -> Any:
 
 def set_many(updates: Dict[str, Any]) -> Tuple[bool, str]:
     err = _validate_payload(updates)
-    if err: return False, err
+    if err:
+        return False, err
     ensure_table()
+    upsert_sql = text("""
+        INSERT INTO live_settings(key, value, updated_at)
+        VALUES (:k, CAST(:v AS JSONB), now())
+        ON CONFLICT (key)
+        DO UPDATE SET value = CAST(:v AS JSONB), updated_at = now()
+    """)
     with engine.begin() as conn:
         for k, v in updates.items():
-            conn.exec_driver_sql(
-                """
-                INSERT INTO live_settings(key, value, updated_at)
-                VALUES (:k, :v::jsonb, now())
-                ON CONFLICT (key) DO UPDATE SET value=:v::jsonb, updated_at=now()
-                """,
-                {"k": k, "v": json.dumps(v)},
-            )
+            conn.execute(upsert_sql, {"k": k, "v": json.dumps(v)})
     return True, "saved"
 
 def set_one(key: str, value: Any) -> Tuple[bool, str]:
