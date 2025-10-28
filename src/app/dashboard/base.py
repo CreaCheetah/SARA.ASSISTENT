@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
+from src.app.dashboard.settings_api import router as settings_api_router
+from src.app.dashboard.settings_live_page import router as settings_live_page_router
 
 # Subrouters
 from src.app.dashboard.settings_page import router as settings_router
@@ -35,3 +37,5 @@ def dashboard_root():
 router.include_router(settings_router)
 router.include_router(reports_router)
 router.include_router(monitoring_router)
+router.include_router(settings_api_router, prefix="")
+router.include_router(settings_live_page_router, prefix="")
