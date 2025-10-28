@@ -32,10 +32,10 @@ async def twilio_voice():
 @router.post("/twilio/handle_recording", response_class=PlainTextResponse)
 async def twilio_handle_recording(RecordingUrl: str = Form(...), RecordingFormat: str = Form("wav")):
     t0 = time.monotonic()
-log.info({"evt":"twilio_handle_in", "RecordingUrl": RecordingUrl, "fmt": RecordingFormat})
-form = await request.form()
-sid = form.get("CallSid"); frm = form.get("From"); to = form.get("To"); dur = form.get("RecordingDuration")
-log.info({"evt":"twilio_form", "sid": sid, "from": frm, "to": to, "dur": dur})
+    log.info({"evt":"twilio_handle_in", "RecordingUrl": RecordingUrl, "fmt": RecordingFormat})
+    form = await request.form()
+    sid = form.get("CallSid"); frm = form.get("From"); to = form.get("To"); dur = form.get("RecordingDuration")
+    log.info({"evt":"twilio_form", "sid": sid, "from": frm, "to": to, "dur": dur})
     log.info({"event": "twilio_handle_recording", "RecordingUrl": RecordingUrl})
     try:
         sid = os.getenv("TWILIO_ACCOUNT_SID", "")
