@@ -6,3 +6,5 @@ redis
 python-multipart
 requests
 twilio
+sqlalchemy
+psycopg2-binary
