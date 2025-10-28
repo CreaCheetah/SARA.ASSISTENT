@@ -5,9 +5,14 @@ from src.workflows.speak_text import speak_text
 from src.app.twilio_routes import router as twilio_router
 from src.app.dashboard.base import router as admin_router
 from src.infra.logs import setup_logging
+from src.infra.live_settings import ensure_table
 
 setup_logging()
 app = FastAPI()
+
+@app.on_event("startup")
+def _init_live_settings():
+    ensure_table()
 
 @app.get("/")
 def read_root():
