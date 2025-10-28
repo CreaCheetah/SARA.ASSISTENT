@@ -1,28 +1,29 @@
+# src/app/twilio_routes.py
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import PlainTextResponse
-from urllib.parse import urlencode
-import os, requests, logging, time
+import logging, os, requests
 from src.workflows.transcribe_and_return import transcribe_bytes
-from src.workflows.speak_text import speak_text
 
 router = APIRouter()
-log = logging.getLogger("uvicorn.error")
+log = logging.getLogger(__name__)
 
-def _base() -> str:
-    return os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+def _base(request: Request) -> str:
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.client.host)
+    return f"{scheme}://{host}"
 
 @router.post("/twilio/voice", response_class=PlainTextResponse)
-async def twilio_voice():
-    log.info({"evt":"twilio_voice"})               # inkomende call
-    action = f"{_base()}/twilio/handle_recording"
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        '<Response>'
-        '  <Say language="nl-NL">Spreek uw bericht in na de toon.</Say>'
-        f'  <Record maxLength="10" timeout="3" playBeep="true" action="{action}" />'
-        '  <Say language="nl-NL">Geen opname ontvangen.</Say>'
-        '</Response>'
-    )
+async def twilio_voice(request: Request):
+    log.info("twilio_voice")
+    base = _base(request)
+    # simpele instructie: neem op en stuur naar /twilio/handle_recording
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say language="nl-NL">Spreek uw bericht in na de toon.</Say>
+  <Record playBeep="true" action="{base}/twilio/handle_recording" />
+  <Say language="nl-NL">Geen opname ontvangen.</Say>
+</Response>"""
+    return PlainTextResponse(xml, media_type="application/xml")
 
 @router.post("/twilio/handle_recording", response_class=PlainTextResponse)
 async def twilio_handle_recording(
@@ -30,37 +31,26 @@ async def twilio_handle_recording(
     RecordingUrl: str = Form(...),
     RecordingFormat: str = Form("wav"),
 ):
-    t0 = time.monotonic()
-    log.info({"evt":"twilio_handle_in", "RecordingUrl": RecordingUrl, "fmt": RecordingFormat})
-    form = await request.form()
-    sid = form.get("CallSid"); frm = form.get("From"); to = form.get("To"); dur = form.get("RecordingDuration")
-    log.info({"evt":"twilio_form", "sid": sid, "from": frm, "to": to, "dur": dur})
+    log.info(f"twilio_handle_in RecordingUrl={RecordingUrl} fmt={RecordingFormat}")
     try:
-        # Download
-        acc = os.getenv("TWILIO_ACCOUNT_SID", "")
+        sid = os.getenv("TWILIO_ACCOUNT_SID", "")
         tok = os.getenv("TWILIO_AUTH_TOKEN", "")
-        audio_url = RecordingUrl
-        r = requests.get(audio_url, auth=(acc, tok), timeout=30)
+        r = requests.get(RecordingUrl, auth=(sid, tok), timeout=30)
         r.raise_for_status()
-        log.info({"evt":"download_ok", "sid": sid, "bytes": len(r.content)})
+        log.info(f"download_ok bytes={len(r.content)}")
 
-        # Transcribe
-        text = transcribe_bytes(r.content, suffix=f".{RecordingFormat}", language="nl").strip()[:400]
-        log.info({"evt":"asr_ok", "ms": int((time.monotonic()-t0)*1000), "len": len(text)})
+        text = transcribe_bytes(r.content, suffix=f".{RecordingFormat}", language="nl")
+        log.info("asr_done_twilio")
 
-        # TTS terug
-        tts_url = f"{_base()}/tts_get?{urlencode({'text': text})}"
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Response>'
-            f'  <Play>{tts_url}</Play>'
-            '</Response>'
-        )
+        tts_url = f"{_base(request)}/tts_get?text={requests.utils.quote(text)}"
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Play>{tts_url}</Play>
+</Response>"""
+        return PlainTextResponse(xml, media_type="application/xml")
     except Exception as e:
-        log.exception("handle_recording failed: %s", e)
-        return (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<Response>'
-            '  <Say language="nl-NL">Er ging iets mis bij het verwerken. Probeer opnieuw.</Say>'
-            '</Response>'
-        )
+        log.error(f"twilio_handle_error {type(e).__name__}: {e}")
+        # val terug met foutmelding voor de beller
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+<Response><Say language="nl-NL">Er ging iets mis.</Say></Response>"""
+        return PlainTextResponse(xml, media_type="application/xml")
