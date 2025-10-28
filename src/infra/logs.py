@@ -93,11 +93,19 @@ def log_call_event(call_id: str, event: str, level: str = "INFO",
     with engine.begin() as conn:
         conn.execute(
             text("""
-            INSERT INTO call_events (call_id, event, level, data_json, latency_ms, status_code)
-            VALUES (:cid, :evt, :lvl, :data::jsonb, :lat, :code)
+            INSERT INTO call_events
+                (call_id, event, level, data_json, latency_ms, status_code)
+            VALUES
+                (:cid, :evt, :lvl, CAST(:data AS JSONB), :lat, :code)
             """),
-            {"cid": call_id, "evt": event, "lvl": level,
-             "data": _jsonable(data), "lat": latency_ms, "code": status_code},
+            {
+                "cid": call_id,
+                "evt": event,
+                "lvl": level,
+                "data": _jsonable(data),
+                "lat": latency_ms,
+                "code": status_code,
+            },
         )
 
 def log_call_end(call_id: str, duration_sec: Optional[int], result: str,
