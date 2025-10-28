@@ -1,17 +1,18 @@
-from sqlalchemy import create_engine, text
 import os
+from sqlalchemy import create_engine
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def _url() -> str:
+    url = os.getenv("DATABASE_URL", "")
+    if not url:
+        raise RuntimeError("DATABASE_URL ontbreekt")
+    # Render geeft soms zonder sslmode; Postgres op Render accepteert ?sslmode=require
+    if "sslmode=" not in url and url.startswith("postgres"):
+        join = "&" if "?" in url else "?"
+        url = f"{url}{join}sslmode=require"
+    return url
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-
-def init_db():
-    with engine.begin() as conn:
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS logs (
-                id SERIAL PRIMARY KEY,
-                ts TIMESTAMP DEFAULT NOW(),
-                level VARCHAR(10),
-                msg TEXT
-            );
-        """))
+engine = create_engine(
+    _url(),
+    pool_pre_ping=True,
+    future=True,
+)
