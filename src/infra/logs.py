@@ -57,5 +57,5 @@ def get_events(limit: int = 200, level: str | None = None, q: str | None = None)
     params["limit"] = max(1, min(int(limit), 1000))
 
     with engine.begin() as conn:
-        rows = conn.exec_driver_sql(sql, params).mappings().all()
+        rows = conn.execute(text(sql), params).mappings().all()
     return [dict(r) for r in rows]
