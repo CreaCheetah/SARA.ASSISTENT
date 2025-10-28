@@ -38,7 +38,24 @@ def setup_logging():
         h.setFormatter(logging.Formatter("%(asctime)s  %(levelname)s  %(message)s"))
         root.addHandler(h)
 
-def get_events(limit: int = 200):
-    with engine.begin() as c:
-        rows = c.execute(SELECT_SQL, {"limit": limit}).mappings().all()
+def get_events(limit: int = 200, level: str | None = None, q: str | None = None):
+    sql = "SELECT ts, level, msg FROM logs"
+    conds, params = [], {}
+
+    if level and level.upper() != "ALL":
+        conds.append("level = :level")
+        params["level"] = level.upper()
+
+    if q:
+        conds.append("msg ILIKE :q")
+        params["q"] = f"%{q}%"
+
+    if conds:
+        sql += " WHERE " + " AND ".join(conds)
+
+    sql += " ORDER BY id DESC LIMIT :limit"
+    params["limit"] = max(1, min(int(limit), 1000))
+
+    with engine.begin() as conn:
+        rows = conn.exec_driver_sql(sql, params).mappings().all()
     return [dict(r) for r in rows]
