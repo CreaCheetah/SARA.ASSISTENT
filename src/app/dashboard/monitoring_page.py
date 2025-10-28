@@ -1,19 +1,16 @@
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from urllib.parse import urlencode
+from sqlalchemy import text
 import html
 
-from sqlalchemy import text
+from src.app.dashboard.auth import require_admin
 from src.infra.db import engine
 from src.infra.logs import get_events, get_calls
-from src.app.dashboard.base import require_admin
 
 router = APIRouter()
 
-
 def esc(v):
     return html.escape("" if v is None else str(v), quote=True)
-
 
 @router.get("/dashboard/monitoring", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
 def dashboard_monitoring(request: Request):
@@ -35,14 +32,25 @@ def dashboard_monitoring(request: Request):
             f"<tr><td>{esc(i['ts'])}</td><td>{esc(i['level'])}</td><td>{esc(i['msg'])}</td></tr>"
             for i in items
         )
+        if not body:
+            body = "<tr><td colspan='3'>Geen data</td></tr>"
         return f"<table><thead>{head}</thead><tbody>{body}</tbody></table>"
 
     def table_calls(items):
-        head = "<tr><th>Call ID</th><th>From</th><th>To</th><th>Start</th><th>Result</th></tr>"
-        body = "".join(
-            f"<tr><td>{esc(i['call_id'])}</td><td>{esc(i['from_masked'])}</td><td>{esc(i['to_number'])}</td><td>{esc(i['started_at'])}</td><td>{esc(i['result'])}</td></tr>"
-            for i in items
-        )
+        head = "<tr><th>Call ID</th><th>From</th><th>To</th><th>Start</th><th>Einde</th><th>Duur(s)</th><th>Result</th></tr>"
+        def row(i):
+            return (
+                "<tr>"
+                f"<td>{esc(i['call_id'])}</td>"
+                f"<td>{esc(i['from_masked'] or '')}</td>"
+                f"<td>{esc(i['to_number'] or '')}</td>"
+                f"<td>{esc(i['started_at'])}</td>"
+                f"<td>{esc(i['ended_at'] or '')}</td>"
+                f"<td>{esc(i['duration_sec'] or '')}</td>"
+                f"<td>{esc(i['result'] or '')}</td>"
+                "</tr>"
+            )
+        body = "".join(row(i) for i in items) or "<tr><td colspan='7'>Geen data</td></tr>"
         return f"<table><thead>{head}</thead><tbody>{body}</tbody></table>"
 
     html_doc = f"""
@@ -54,6 +62,7 @@ def dashboard_monitoring(request: Request):
       table{{border-collapse:collapse;width:100%;margin-top:12px}}
       td,th{{border:1px solid #ddd;padding:8px;font-size:14px}}
       th{{background:#eee;text-align:left}}
+      .toolbar input{{padding:6px;margin-right:6px}}
     </style>
     </head>
     <body>
@@ -62,18 +71,20 @@ def dashboard_monitoring(request: Request):
         <a class="tab {'active' if tab=='logs' else ''}" href="/dashboard/monitoring?tab=logs">Logs</a>
         <a class="tab {'active' if tab=='calls' else ''}" href="/dashboard/monitoring?tab=calls">Calls</a>
       </div>
-      <p><form method="get">
-        <input type="hidden" name="tab" value="{esc(tab)}">
-        <label>Zoek:</label>
-        <input name="q" value="{esc(q or '')}">
-        <label>Level:</label>
-        <input name="level" value="{esc(level or '')}">
-        <label>Start:</label>
-        <input type="datetime-local" name="start" value="{esc(start or '')}">
-        <label>Einde:</label>
-        <input type="datetime-local" name="end" value="{esc(end or '')}">
-        <button type="submit">Filter</button>
-      </form></p>
+      <p>
+        <form method="get" class="toolbar">
+          <input type="hidden" name="tab" value="{esc(tab)}">
+          <label>Zoek:</label>
+          <input name="q" value="{esc(q or '')}">
+          <label>Level:</label>
+          <input name="level" value="{esc(level or '')}">
+          <label>Start:</label>
+          <input type="datetime-local" name="start" value="{esc(start or '')}">
+          <label>Einde:</label>
+          <input type="datetime-local" name="end" value="{esc(end or '')}">
+          <button type="submit">Filter</button>
+        </form>
+      </p>
       {(table_logs(rows) if tab=='logs' else table_calls(rows))}
       <p><a href="/dashboard">Terug</a></p>
     </body></html>
