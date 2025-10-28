@@ -1,19 +1,18 @@
 from __future__ import annotations
 from typing import Any, Dict, Tuple, Optional
 import json
+from src.infra.db import engine
 
-from src.infra.db import engine  # bestaand in jouw project
-
-# Enige keys voor Fase 2
 DEFAULTS: Dict[str, Any] = {
-    "bot_enabled": True,           # kill-switch voor Sara
-    "pastas_enabled": True,        # pasta's beschikbaar
-    "delay_pizzas_min": 10,        # 10..60 in stappen van 10
-    "delay_schotels_min": 10       # 10..60 in stappen van 10
+    "bot_enabled": True,
+    "pastas_enabled": True,
+    "pickup_enabled": True,        # << deze key is nodig
+    "delay_pizzas_min": 10,
+    "delay_schotels_min": 10,
 }
 
 _NUM_KEYS = {"delay_pizzas_min", "delay_schotels_min"}
-_BOOL_KEYS = {"bot_enabled", "pastas_enabled"}
+_BOOL_KEYS = {"bot_enabled", "pastas_enabled", "pickup_enabled"}
 
 def ensure_table() -> None:
     ddl = """
@@ -30,7 +29,7 @@ def _validate_payload(updates: Dict[str, Any]) -> Optional[str]:
     for k, v in updates.items():
         if k in _NUM_KEYS:
             if not isinstance(v, int) or v % 10 != 0 or not (10 <= v <= 60):
-                return f"{k} must be integer in {{10,20,30,40,50,60}}"
+                return f"{k} must be one of 10,20,30,40,50,60"
         elif k in _BOOL_KEYS:
             if not isinstance(v, bool):
                 return f"{k} must be boolean"
@@ -39,20 +38,16 @@ def _validate_payload(updates: Dict[str, Any]) -> Optional[str]:
     return None
 
 def _merge_defaults(db_values: Dict[str, Any]) -> Dict[str, Any]:
-    merged = dict(DEFAULTS)
-    merged.update(db_values)
-    return merged
+    merged = dict(DEFAULTS); merged.update(db_values); return merged
 
 def get_all() -> Dict[str, Any]:
     ensure_table()
     with engine.begin() as conn:
         rows = conn.exec_driver_sql("SELECT key, value FROM live_settings").all()
-    db_vals = {k: v for k, v in rows}
-    return _merge_defaults(db_vals)
+    return _merge_defaults({k: v for k, v in rows})
 
 def get(key: str) -> Any:
-    if key not in DEFAULTS:
-        raise KeyError(f"unknown key: {key}")
+    if key not in DEFAULTS: raise KeyError(f"unknown key: {key}")
     ensure_table()
     with engine.begin() as conn:
         row = conn.exec_driver_sql(
@@ -62,8 +57,7 @@ def get(key: str) -> Any:
 
 def set_many(updates: Dict[str, Any]) -> Tuple[bool, str]:
     err = _validate_payload(updates)
-    if err:
-        return False, err
+    if err: return False, err
     ensure_table()
     with engine.begin() as conn:
         for k, v in updates.items():
