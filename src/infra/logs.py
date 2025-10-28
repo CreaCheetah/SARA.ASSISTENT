@@ -2,6 +2,12 @@ import logging
 from sqlalchemy import text
 from .db import engine
 
+def conn():
+    import sqlite3
+    c = sqlite3.connect("/tmp/sara_logs.db", check_same_thread=False)
+    c.row_factory = sqlite3.Row
+    return c
+
 class DBHandler(logging.Handler):
     def emit(self, record):
         try:
