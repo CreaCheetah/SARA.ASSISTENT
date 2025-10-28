@@ -1,39 +1,40 @@
-import logging, threading, datetime
+# src/infra/logs.py
+import os, json, time, logging
+from collections import deque
 
-class _RingBuffer(logging.Handler):
-    def __init__(self, size: int = 500):
-        super().__init__()
-        self.size = size
-        self.buf = []
-        self.lock = threading.Lock()
+_LOG_PATH = "/tmp/events.log"
 
-    def emit(self, record: logging.LogRecord):
-        line = {
-            "ts": datetime.datetime.fromtimestamp(record.created).strftime("%Y-%m-%d %H:%M:%S"),
-            "level": record.levelname,
-            "msg": self.format(record),
-        }
-        with self.lock:
-            self.buf.append(line)
-            if len(self.buf) > self.size:
-                self.buf = self.buf[-self.size:]
+class JsonLineHandler(logging.Handler):
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            obj = {
+                "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "level": record.levelname,
+                "msg": record.getMessage(),
+            }
+            with open(_LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+        except Exception:
+            pass  # nooit crashen op logging
 
-_handler: _RingBuffer | None = None
-
-def setup_logging(size: int = 500):
-    """Hang buffer aan uvicorn/error logger."""
-    global _handler
-    if _handler:
-        return
-    _handler = _RingBuffer(size=size)
-    _handler.setFormatter(logging.Formatter("%(message)s"))
-    log = logging.getLogger("uvicorn.error")
-    log.setLevel(logging.INFO)
-    log.addHandler(_handler)
+def setup_logging() -> None:
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(JsonLineHandler())
+    logging.getLogger("uvicorn.error").setLevel(logging.INFO)
+    logging.getLogger("uvicorn.access").setLevel(logging.INFO)
 
 def get_events(n: int = 200):
-    """Laatste n regels."""
-    if not _handler:
+    if not os.path.exists(_LOG_PATH):
         return []
-    with _handler.lock:
-        return list(_handler.buf[-n:])
+    last = deque(maxlen=n)
+    with open(_LOG_PATH, "r", encoding="utf-8") as f:
+        for line in f:
+            last.append(line)
+    out = []
+    for line in last:
+        try:
+            out.append(json.loads(line))
+        except Exception:
+            out.append({"ts": "", "level": "INFO", "msg": line.strip()})
+    return out
