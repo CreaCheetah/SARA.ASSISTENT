@@ -1,10 +1,9 @@
+from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
+
 from src.app.dashboard.settings_api import router as settings_api_router
 from src.app.dashboard.settings_live_page import router as settings_live_page_router
-
-# Subrouters
-from src.app.dashboard.settings_page import router as settings_router
 from src.app.dashboard.reports_page import router as reports_router
 from src.app.dashboard.monitoring_page import router as monitoring_router
 
@@ -25,7 +24,7 @@ def dashboard_root():
     <body>
       <h2>SARA • Dashboard</h2>
       <div class="grid">
-        <a class="btn" href="/dashboard/settings">Live instellingen</a>
+        <a class="btn" href="/dashboard/live-settings">Live instellingen</a>
         <a class="btn" href="/dashboard/reports">Rapportage</a>
         <a class="btn" href="/dashboard/monitoring">Monitoring</a>
       </div>
@@ -34,7 +33,6 @@ def dashboard_root():
     """)
 
 # Subrouters koppelen
-router.include_router(settings_router)
 router.include_router(reports_router)
 router.include_router(monitoring_router)
 router.include_router(settings_api_router, prefix="")
