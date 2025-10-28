@@ -6,6 +6,8 @@ from src.workflows.speak_text import speak_text
 from src.app.admin import router as admin_router
 from src.infra.logs import setup_logging
 setup_logging()
+from src.infra.db import init_db
+init_db()
 
 app = FastAPI()
 
