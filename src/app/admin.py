@@ -20,27 +20,32 @@ def require_admin(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
 
-@router.get("/dashboard", response_class=HTMLResponse)
-def dashboard():
-    html = """
-    <html><head><meta charset="utf-8"><title>SARA • Dashboard</title>
+@router.get("/dashboard/logging", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
+def dashboard_logging():
+    rows = get_events(200)
+    trs = "\n".join(
+        f"<tr><td>{r['ts']:%Y-%m-%d %H:%M:%S}</td><td>{r['level']}</td><td>{r['msg']}</td></tr>"
+        for r in rows
+    )
+    html = f"""
+    <html><head><meta charset="utf-8"><title>Logging</title>
+    <meta http-equiv="refresh" content="5">
     <style>
-      body{font-family:system-ui;margin:40px;background:#faf7f2}
-      .wrap{max-width:900px;margin:auto}
-      .title{font-size:28px;font-weight:700;margin-bottom:24px}
-      .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-      .tile{padding:22px;border-radius:14px;color:#fff;text-decoration:none;display:block}
-      .green{background:#1f8a4c} .red{background:#c0392b} .blue{background:#2c3e50}
-      .tile h3{margin:0 0 8px 0;font-size:18px}
+      body{{font-family:system-ui;margin:24px;background:#fff}}
+      table{{width:100%;border-collapse:collapse}}
+      th,td{{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}}
+      th{{background:#f6f6f6}}
+      .lvl-ERROR{{color:#c0392b;font-weight:600}}
+      .lvl-WARNING{{color:#d35400}}
+      .lvl-INFO{{color:#2c3e50}}
     </style></head>
-    <body><div class="wrap">
-      <div class="title">🇮🇹 SARA • Dashboard</div>
-      <div class="tiles">
-        <a class="tile green" href="/dashboard/live"><h3>Live instellingen</h3></a>
-        <a class="tile red" href="/dashboard/reports"><h3>Rapportage</h3></a>
-        <a class="tile blue" href="/dashboard/logging"><h3>Logging</h3></a>
-      </div>
-    </div></body></html>
+    <body>
+      <h2>Logging (beveiligd)</h2>
+      <table>
+        <thead><tr><th>Tijd</th><th>Niveau</th><th>Bericht</th></tr></thead>
+        <tbody>{trs or '<tr><td colspan="3">Nog geen regels</td></tr>'}</tbody>
+      </table>
+    </body></html>
     """
     return HTMLResponse(html)
 
