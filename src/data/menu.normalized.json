@@ -1,0 +1,1691 @@
+{
+  "meta": {
+    "restaurant": "Ristorante Adam",
+    "currency": "EUR",
+    "version": 1
+  },
+  "categories": [
+    "Voorgerechten",
+    "Pasta's",
+    "Calzone's (dichtgeslagen pizza's)",
+    "Pizza's",
+    "Schotels",
+    "Kapsalons",
+    "Hoofdgerechten",
+    "Broodjes",
+    "Extra's",
+    "Dranken en desserts"
+  ],
+  "rules": [
+    {
+      "type": "sauce_policy",
+      "applies_to_categories": [
+        "Pizza's",
+        "Schotels"
+      ],
+      "applies_to_tags_any": [
+        "shoarma",
+        "spareribs",
+        "kofta"
+      ],
+      "included_count": 2,
+      "default_sauces": [
+        "knoflooksaus",
+        "zoete uiensaus"
+      ]
+    },
+    {
+      "type": "discount",
+      "scope": "category:Pizza's",
+      "condition": {
+        "variant_key": "child"
+      },
+      "amount_eur": 1.5
+    },
+    {
+      "type": "extras",
+      "items": [
+        {
+          "name": "Knoflooksaus",
+          "code": "ex_knoflooksaus",
+          "price_eur": 1.0
+        },
+        {
+          "name": "Zoete uiensaus",
+          "code": "ex_zoete_uiensaus",
+          "price_eur": 1.0
+        },
+        {
+          "name": "Pikante uiensaus",
+          "code": "ex_pikante_uiensaus",
+          "price_eur": 1.0
+        },
+        {
+          "name": "Mayonaise",
+          "code": "ex_mayonaise",
+          "price_eur": 1.0
+        },
+        {
+          "name": "Bakje Satésaus",
+          "code": "ex_bakjesatesaus",
+          "price_eur": 2.0
+        },
+        {
+          "name": "Sambal",
+          "code": "ex_sambal",
+          "price_eur": 1.0
+        },
+        {
+          "name": "Extra patat",
+          "code": "ex_extrapatat",
+          "price_eur": 4.0
+        },
+        {
+          "name": "Pita broodje",
+          "code": "ex_pitabroodje",
+          "price_eur": 1.0
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "code": "vg_toscaanse_broodjes_met_kruidenboter",
+      "name": "Toscaanse broodjes met kruidenboter",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 4.0
+    },
+    {
+      "code": "vg_caesar_salade",
+      "name": "Caesar salade",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 9.0
+    },
+    {
+      "code": "vg_funghi_trifolati_gebakken_champignons_knoflook_peterselie",
+      "name": "Funghi Trifolati (gebakken champignons, knoflook, peterselie in wijnsaus)",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 10.0
+    },
+    {
+      "code": "vg_insalata_di_mozzarella",
+      "name": "Insalata di Mozzarella",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 10.0
+    },
+    {
+      "code": "vg_griekse_salade",
+      "name": "Griekse Salade",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 13.0
+    },
+    {
+      "code": "vg_gemengde_salade_met_feta_kaas",
+      "name": "Gemengde salade met feta kaas",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 13.0
+    },
+    {
+      "code": "vg_carpaccio_dun_gesneden_biologische_ossenhaas",
+      "name": "Carpaccio (dun gesneden biologische ossenhaas)",
+      "category": "Voorgerechten",
+      "available": true,
+      "price_eur": 13.0
+    },
+    {
+      "code": "pa_bolognese",
+      "name": "Bolognese",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 14.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_gehakt_en_tomatensaus",
+      "name": "Gehakt en tomatensaus",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 14.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_funghi_champignons_in_roomsaus",
+      "name": "Funghi (champignons in roomsaus)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 15.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_vegetariana_groenten_in_tomatensaus",
+      "name": "Vegetariana (groenten in tomatensaus)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 14.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_carbonara_spek_ei_en_roomsaus",
+      "name": "Carbonara (spek, ei en roomsaus)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 15.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_quattro_formaggi_vier_soorten_italiaanse_kaas",
+      "name": "Quattro Formaggi (vier soorten Italiaanse kaas)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 16.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_tortellini",
+      "name": "Tortellini",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 16.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_a_la_gamberetti_garnalen_roomsaus_en_basilicum",
+      "name": "A la Gamberetti (garnalen, roomsaus en basilicum)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 17.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_salmone_gerookte_zalm_met_tomatenroomsaus_whiskey_tomaat_",
+      "name": "Salmone (gerookte zalm met tomatenroomsaus, whiskey, tomaat, ui en basilicum-olie)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 18.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_pasta_van_t_huis_gesmolten_kaas_ham_champignons_ui_en_bas",
+      "name": "Pasta van 't Huis (gesmolten kaas, ham, champignons, ui en basilicum in roomsaus)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 17.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_pasta_alfredo_kipfilet_spinazie_champignon_parmezaanse_ka",
+      "name": "Pasta Alfredo (kipfilet, spinazie, champignon, Parmezaanse kaas, mozzarella, knoflookolie en pesto)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 18.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pa_lasagne_al_forno_bolognese",
+      "name": "Lasagne al Forno (Bolognese)",
+      "category": "Pasta's",
+      "available": true,
+      "price_eur": 15.0,
+      "modifiers": [
+        {
+          "id": "pasta_type",
+          "type": "choice",
+          "label": "Kies pastasoort",
+          "required": true,
+          "options": [
+            {
+              "key": "tagliatelle",
+              "label": "Tagliatelle",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "spaghetti",
+              "label": "Spaghetti",
+              "price_delta_eur": 0
+            },
+            {
+              "key": "penne",
+              "label": "Penne",
+              "price_delta_eur": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "cz_pollo",
+      "name": "Pollo",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 15.0
+    },
+    {
+      "code": "cz_dichtgeslagen_pizza_met_kaas_kipfilet_en_satésaus",
+      "name": "Dichtgeslagen pizza met kaas, kipfilet en satésaus",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 15.0
+    },
+    {
+      "code": "cz_bolognese_kaas_tomaat_gehaktsaus_paprika_champignons_ui_h",
+      "name": "Bolognese (kaas, tomaat, gehaktsaus, paprika, champignons, ui, ham en salami)",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 15.0
+    },
+    {
+      "code": "cz_shoarma_kaas_en_shoarma",
+      "name": "Shoarma — Kaas en shoarma",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 16.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 16.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 17.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "cz_shoarma_special_kaas_paprika_champignons_ui_en_shoarma",
+      "name": "Shoarma Special — Kaas, paprika, champignons, ui en shoarma",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 17.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 17.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 18.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "cz_calzone_adam_kipfilet_feta_kaas_paprika_champignons_en_ui",
+      "name": "Calzone Adam — Kipfilet, feta kaas, paprika, champignons en ui",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 17.0
+    },
+    {
+      "code": "cz_calzone_mimo_kaas_kipfilet_ham_salami_shoarma_champignons",
+      "name": "Calzone Mimo — Kaas, kipfilet, ham, salami, shoarma, champignons en knoflooksaus",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 17.0,
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "cz_calzone_spareribs_kaas_vlees_van_spareribs_zonder_botjes",
+      "name": "Calzone Spareribs — Kaas, vlees van spareribs (zonder botjes)",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 20.0,
+      "tags": [
+        "spareribs"
+      ]
+    },
+    {
+      "code": "cz_calzone_döner_kaas_en_döner",
+      "name": "Calzone Döner — Kaas en döner",
+      "category": "Calzone's (dichtgeslagen pizza's)",
+      "available": true,
+      "price_eur": 16.0,
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "pz_margherita",
+      "name": "Margherita",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 10.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 8.5
+        }
+      ]
+    },
+    {
+      "code": "pz_cipolla",
+      "name": "Cipolla",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 12.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 10.5
+        }
+      ]
+    },
+    {
+      "code": "pz_funghi",
+      "name": "Funghi",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 12.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 10.5
+        }
+      ]
+    },
+    {
+      "code": "pz_italiana",
+      "name": "Italiana",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 13.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 11.5
+        }
+      ]
+    },
+    {
+      "code": "pz_vegetariana",
+      "name": "Vegetariana",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_ananas",
+      "name": "Ananas",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 12.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 10.5
+        }
+      ]
+    },
+    {
+      "code": "pz_hawaii",
+      "name": "Hawaii",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_mozzarella",
+      "name": "Mozzarella",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 13.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 11.5
+        }
+      ]
+    },
+    {
+      "code": "pz_borromea",
+      "name": "Borromea",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 12.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 10.5
+        }
+      ]
+    },
+    {
+      "code": "pz_salami",
+      "name": "Salami",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pepperoni",
+      "name": "Pepperoni",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_bolognese",
+      "name": "Bolognese",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 13.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 11.5
+        }
+      ]
+    },
+    {
+      "code": "pz_capricciosa",
+      "name": "Capricciosa",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_casanova",
+      "name": "Casanova",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_tonijn",
+      "name": "Tonijn",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 13.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 11.5
+        }
+      ]
+    },
+    {
+      "code": "pz_meridionale",
+      "name": "Meridionale",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 14.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 12.5
+        }
+      ]
+    },
+    {
+      "code": "pz_quattro_stagioni",
+      "name": "Quattro Stagioni",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ]
+    },
+    {
+      "code": "pz_quattro_formaggi",
+      "name": "Quattro Formaggi",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ]
+    },
+    {
+      "code": "pz_venezia",
+      "name": "Venezia",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ]
+    },
+    {
+      "code": "pz_napoli",
+      "name": "Napoli",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 13.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 11.5
+        }
+      ]
+    },
+    {
+      "code": "pz_frutti_di_mare",
+      "name": "Frutti di Mare",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ]
+    },
+    {
+      "code": "pz_shoarma",
+      "name": "Shoarma",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "pz_shoarma_lams_of_kip",
+      "name": "Shoarma Lams of Kip",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "pz_shoarma_special",
+      "name": "Shoarma Special",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 16.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 16.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 17.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "pz_döner",
+      "name": "Döner",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "pz_zalm",
+      "name": "Zalm",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 17.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 15.5
+        }
+      ]
+    },
+    {
+      "code": "pz_wubbo_ockels",
+      "name": "Wubbo Ockels",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 15.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 13.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_opmeer",
+      "name": "Pizza Opmeer",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_spanbroek",
+      "name": "Pizza Spanbroek",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_hoogwoud",
+      "name": "Pizza Hoogwoud",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 17.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 15.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_crazy_jalapeño",
+      "name": "Pizza Crazy Jalapeño",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 17.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 15.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_sweety_chicken",
+      "name": "Pizza Sweety Chicken",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 20.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 18.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_spareribs",
+      "name": "Pizza Spareribs",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ],
+      "tags": [
+        "spareribs"
+      ]
+    },
+    {
+      "code": "pz_pizza_taco_mexicano",
+      "name": "Pizza Taco Mexicano",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_kipsaté",
+      "name": "Pizza Kipsaté",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 16.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 14.5
+        }
+      ]
+    },
+    {
+      "code": "pz_pizza_bbq_chicken",
+      "name": "Pizza BBQ Chicken",
+      "category": "Pizza's",
+      "available": true,
+      "variants": [
+        {
+          "key": "std",
+          "label": "Standaard",
+          "price_eur": 17.0
+        },
+        {
+          "key": "child",
+          "label": "Kinderformaat",
+          "price_eur": 15.5
+        }
+      ]
+    },
+    {
+      "code": "sc_shoarma",
+      "name": "Shoarma",
+      "category": "Schotels",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 17.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 16.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 18.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "sc_kindermenu",
+      "name": "Kindermenu",
+      "category": "Schotels",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 12.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 12.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 13.0
+        }
+      ]
+    },
+    {
+      "code": "sc_shoarma_van_t_huis",
+      "name": "Shoarma van 't huis",
+      "category": "Schotels",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 18.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 17.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 19.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "sc_gebakken_paprika_champignons_ui_en_gesmolten_kaas",
+      "name": "Gebakken paprika, champignons, ui en gesmolten kaas",
+      "category": "Schotels",
+      "available": true,
+      "price_eur": 16.0
+    },
+    {
+      "code": "sc_döner_schotel",
+      "name": "Döner schotel",
+      "category": "Schotels",
+      "available": true,
+      "price_eur": 16.0,
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "sc_kofta_gekruid_gehakt_uit_eigen_keuken",
+      "name": "Kofta (gekruid gehakt uit eigen keuken)",
+      "category": "Schotels",
+      "available": true,
+      "price_eur": 17.0,
+      "tags": [
+        "kofta"
+      ]
+    },
+    {
+      "code": "sc_mix_grill_diavolla_shoarma_shaslick_kipfilet_en_kofta",
+      "name": "Mix Grill Diavolla — Shoarma, shaslick, kipfilet en kofta",
+      "category": "Schotels",
+      "available": true,
+      "price_eur": 22.0,
+      "tags": [
+        "kofta",
+        "shoarma"
+      ]
+    },
+    {
+      "code": "sc_mix_grill_kardo_shoarma_shaslick_kofta_kipfilet_en_spare_",
+      "name": "Mix Grill Kardo — Shoarma, shaslick, kofta, kipfilet en spare-ribs",
+      "category": "Schotels",
+      "available": true,
+      "price_eur": 25.0,
+      "tags": [
+        "kofta",
+        "shoarma"
+      ]
+    },
+    {
+      "code": "ks_kapsalon",
+      "name": "Kapsalon",
+      "category": "Kapsalons",
+      "available": true,
+      "variants": [
+        {
+          "key": "döner",
+          "label": "Döner",
+          "price_eur": 12.0
+        },
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 12.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 12.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 14.0
+        }
+      ]
+    },
+    {
+      "code": "ks_kapsalon_alla_job_extra_veel_vlees",
+      "name": "Kapsalon alla Job (extra veel vlees)",
+      "category": "Kapsalons",
+      "available": true,
+      "variants": [
+        {
+          "key": "döner",
+          "label": "Döner",
+          "price_eur": 15.0
+        },
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 16.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 15.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 17.0
+        }
+      ]
+    },
+    {
+      "code": "ks_kapsalon_kipfilet",
+      "name": "Kapsalon kipfilet",
+      "category": "Kapsalons",
+      "available": true,
+      "price_eur": 16.0
+    },
+    {
+      "code": "hg_kipfilet_van_de_grill_met_gebakken_ui_paprika_en_mango_ch",
+      "name": "Kipfilet — Van de grill met gebakken ui, paprika en mango-chutney",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 17.0
+    },
+    {
+      "code": "hg_kipsaté_kipfilet_en_satésaus",
+      "name": "Kipsaté — Kipfilet en satésaus",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 16.0
+    },
+    {
+      "code": "hg_varkenssate_varkenshaas_en_satésaus",
+      "name": "Varkenssate — Varkenshaas en satésaus",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 17.0
+    },
+    {
+      "code": "hg_spare_ribs_keuze_uit_zoet_of_hot",
+      "name": "Spare-Ribs — Keuze uit zoet of hot",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 20.0
+    },
+    {
+      "code": "hg_kalfs_spare_ribs_halal",
+      "name": "Kalfs spare-ribs (Halal)",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 26.0
+    },
+    {
+      "code": "hg_kip_di_casa_kipfilet_in_roomsaus_met_paprika_champignons_",
+      "name": "Kip di Casa — Kipfilet in roomsaus met paprika, champignons en uien",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 17.0
+    },
+    {
+      "code": "hg_haas_di_casa_varkenshaas_in_roomsaus_met_paprika_champign",
+      "name": "Haas di Casa — Varkenshaas in roomsaus met paprika, champignons en uien",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 18.0
+    },
+    {
+      "code": "hg_biefstuk_200_gram_van_de_grill_met_peper_of_champignonsau",
+      "name": "Biefstuk (200 gram) — Van de grill met peper- of champignonsaus",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 25.0
+    },
+    {
+      "code": "hg_ossenhaas_200_gram_van_de_grill_met_peper_of_champignonsa",
+      "name": "Ossenhaas (200 gram) — Van de grill met peper- of champignonsaus",
+      "category": "Hoofdgerechten",
+      "available": true,
+      "price_eur": 30.0
+    },
+    {
+      "code": "br_broodje_shoarma",
+      "name": "Broodje shoarma",
+      "category": "Broodjes",
+      "available": true,
+      "variants": [
+        {
+          "key": "varken",
+          "label": "Varken",
+          "price_eur": 10.0
+        },
+        {
+          "key": "kip",
+          "label": "Kip",
+          "price_eur": 10.0
+        },
+        {
+          "key": "lams",
+          "label": "Lams",
+          "price_eur": 12.0
+        }
+      ],
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "br_broodje_döner",
+      "name": "Broodje Döner",
+      "category": "Broodjes",
+      "available": true,
+      "price_eur": 9.0,
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "br_broodje_adam_ham_shoarma_ananas_en_gesmolten_kaas",
+      "name": "Broodje Adam — Ham, shoarma, ananas en gesmolten kaas",
+      "category": "Broodjes",
+      "available": true,
+      "price_eur": 12.0,
+      "tags": [
+        "shoarma"
+      ]
+    },
+    {
+      "code": "br_pita_kaas",
+      "name": "Pita Kaas",
+      "category": "Broodjes",
+      "available": true,
+      "price_eur": 4.0
+    },
+    {
+      "code": "br_pita_ham_kaas",
+      "name": "Pita Ham/Kaas",
+      "category": "Broodjes",
+      "available": true,
+      "price_eur": 5.0
+    },
+    {
+      "code": "ex_sauzen_knoflooksaus_zoete_uiensaus_pikante_uiensaus_mayon",
+      "name": "Sauzen: knoflooksaus, zoete uiensaus, pikante uiensaus, mayonaise",
+      "category": "Extra's",
+      "available": true,
+      "price_eur": 1.0
+    },
+    {
+      "code": "ex_bakje_satésaus",
+      "name": "Bakje Satésaus",
+      "category": "Extra's",
+      "available": true,
+      "price_eur": 2.0
+    },
+    {
+      "code": "ex_sambal",
+      "name": "Sambal",
+      "category": "Extra's",
+      "available": true,
+      "price_eur": 1.0
+    },
+    {
+      "code": "ex_extra_patat",
+      "name": "Extra patat",
+      "category": "Extra's",
+      "available": true,
+      "price_eur": 4.0
+    },
+    {
+      "code": "ex_pita_broodje",
+      "name": "Pita broodje",
+      "category": "Extra's",
+      "available": true,
+      "price_eur": 1.0
+    },
+    {
+      "code": "dr_cola_of_fanta",
+      "name": "Cola of Fanta",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 3.0
+    },
+    {
+      "code": "dr_blik_bier_heineken",
+      "name": "Blik bier Heineken",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 3.0
+    },
+    {
+      "code": "dr_fles_rode_witte_of_rosé_wijn",
+      "name": "Fles rode, witte of rosé wijn",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 17.5
+    },
+    {
+      "code": "dr_fles_lambrusco",
+      "name": "Fles Lambrusco",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 12.0
+    },
+    {
+      "code": "dr_tiramisu",
+      "name": "Tiramisu",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 7.0
+    },
+    {
+      "code": "dr_ben_jerrys_ijs_100_ml_smaken_strawberry_cheesecake_carame",
+      "name": "Ben & Jerry’s ijs 100 ml (smaken: Strawberry Cheesecake, Caramel Chew Chew, Cookie Dough, Chocolate Fudge Brownie, Cone Together)",
+      "category": "Dranken en desserts",
+      "available": true,
+      "price_eur": 3.5
+    }
+  ]
+}
