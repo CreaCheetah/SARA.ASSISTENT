@@ -32,10 +32,29 @@ def setup_logging():
     dh.setFormatter(fmt)
     root.addHandler(dh)
 
-def get_events(limit: int = 200):
-    with engine.connect() as conn:
-        rows = conn.execute(
-            text("SELECT ts, level, msg FROM logs ORDER BY id DESC LIMIT :lim"),
-            {"lim": limit},
-        ).fetchall()
-    return [{"ts": r.ts, "level": r.level, "msg": r.msg} for r in rows]
+# src/infra/logs.py
+def get_events(limit: int = 200, level: str | None = None, q: str | None = None):
+    """
+    Haal logregels op uit tabel 'events' met optionele filters.
+    Verwacht kolommen: ts TIMESTAMPTZ, level TEXT, msg TEXT.
+    """
+    sql = "SELECT ts, level, msg FROM events"
+    conds, params = [], {}
+
+    if level and level.upper() != "ALL":
+        conds.append("level = %(level)s")
+        params["level"] = level.upper()
+
+    if q:
+        conds.append("msg ILIKE %(q)s")
+        params["q"] = f"%{q}%"
+
+    if conds:
+        sql += " WHERE " + " AND ".join(conds)
+
+    sql += " ORDER BY ts DESC LIMIT %(limit)s"
+    params["limit"] = max(1, min(int(limit), 5000))
+
+    with conn() as c:  # gebruikt jouw bestaande conn()
+        rows = c.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
