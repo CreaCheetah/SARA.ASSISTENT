@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse, FileResponse
 from src.workflows.transcribe_and_return import transcribe_bytes
 from src.workflows.speak_text import speak_text
 from src.app.twilio_routes import router as twilio_router
-from src.app.admin import router as admin_router
+from src.app.dashboard.base import router as admin_router
 from src.infra.logs import setup_logging
 
 setup_logging()
