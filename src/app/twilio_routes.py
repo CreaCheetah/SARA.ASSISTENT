@@ -12,12 +12,15 @@ import json
 router = APIRouter(prefix="/twilio", tags=["twilio"])
 VOICE_OPTS = dict(language="nl-NL")  # evt. voice toevoegen als je Polly gebruikt
 
-
 @router.post("/voice")
 async def inbound_call(_: Request):
-    """Start van het gesprek: tijdcheck + (eventuele) melding + opening + luisteren."""
+    from twilio.twiml.voice_response import VoiceResponse, Connect
     resp = VoiceResponse()
-    ts = time_status(now_ams())
+    resp.say("Een moment, ik verbind u met SARA.", language="nl-NL")
+    connect = Connect()
+    connect.stream(url="wss://sara-assistent.onrender.com/ws/twilio")
+    resp.append(connect)
+    return Response(str(resp), media_type="application/xml")
 
     if ts:
         # Gesloten (incl. begroeting in de tekst): melden en ophangen
