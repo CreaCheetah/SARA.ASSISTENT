@@ -1,162 +1,172 @@
 from __future__ import annotations
 from fastapi import APIRouter, WebSocket
-import os, json, base64, asyncio, audioop
-import websockets
+import os, json, base64, asyncio, audioop, websockets
+from typing import List
+
+# ── jouw workflow: ALLE businesslogica hieruit ────────────────────────────────
+from src.workflows import call_flow as cf
+from src.nlu.parse_order import parse_items
+from src.infra import live_settings as ls
 
 router = APIRouter()
 
+# ── ENV ───────────────────────────────────────────────────────────────────────
 OPENAI_KEY   = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_REALTIME_MODEL", "gpt-4o-realtime-preview")
-VOICE        = os.getenv("OPENAI_REALTIME_VOICE", "marin")  # bv. marin / aria / alloy / verse / luna / sol / shimmer
+VOICE        = os.getenv("OPENAI_REALTIME_VOICE", "marin")
 
-# Twilio 8k μ-law ↔ PCM16
-def ulaw_to_pcm16(ulaw: bytes) -> bytes:
-    return audioop.ulaw2lin(ulaw, 2)
+# ── Audio helpers (Twilio μ-law 8kHz ↔ PCM16) ─────────────────────────────────
+def ulaw_to_pcm16(b: bytes) -> bytes: return audioop.ulaw2lin(b, 2)
+def pcm16_to_ulaw(b: bytes) -> bytes: return audioop.lin2ulaw(b, 2)
 
-def pcm16_to_ulaw(pcm16: bytes) -> bytes:
-    return audioop.lin2ulaw(pcm16, 2)
-
-async def openai_connect():
-    if not OPENAI_KEY:
-        raise RuntimeError("OPENAI_API_KEY ontbreekt")
+async def oai_connect():
+    if not OPENAI_KEY: raise RuntimeError("OPENAI_API_KEY ontbreekt")
     url = f"wss://api.openai.com/v1/realtime?model={OPENAI_MODEL}"
-    headers = {
-        "Authorization": f"Bearer {OPENAI_KEY}",
-        "OpenAI-Beta": "realtime=v1",
-    }
-    return await websockets.connect(
-        url, extra_headers=headers,
-        ping_interval=20, ping_timeout=20, max_size=10_000_000
-    )
+    headers = {"Authorization": f"Bearer {OPENAI_KEY}", "OpenAI-Beta": "realtime=v1"}
+    return await websockets.connect(url, extra_headers=headers, ping_interval=20, ping_timeout=20, max_size=10_000_000)
 
+# ── Gespreks-state (dun; echte logica zit in cf.*) ───────────────────────────
+class State:
+    def __init__(self):
+        self.mode: str|None = None            # "bezorgen"|"afhalen"
+        self.items: List[cf.Item] = []
+    def merge(self, new: List[cf.Item]):
+        by = {(i.category,i.name,i.unit_price): i for i in self.items}
+        for it in new:
+            k = (it.category,it.name,it.unit_price)
+            if k in by: by[k].qty += it.qty
+            else: by[k] = cf.Item(**it.__dict__)
+        self.items = list(by.values())
+
+def detect_mode(t: str) -> str|None:
+    t=t.lower()
+    if any(w in t for w in ["bezorg","lever","brengen"]): return "bezorgen"
+    if any(w in t for w in ["afhaal","afhalen","ophalen"]): return "afhalen"
+    return None
+
+def detect_yesno(t: str) -> str|None:
+    t=t.lower()
+    if any(w in t for w in ["ja","klopt"]): return "ja"
+    if any(w in t for w in ["nee","niet goed"]): return "nee"
+    return None
+
+async def say(oai, text: str):
+    await oai.send(json.dumps({
+        "type":"response.create",
+        "response":{"modalities":["audio"],"instructions":text,"audio":{"voice":VOICE}}
+    }))
+
+# ── Twilio WS endpoint ────────────────────────────────────────────────────────
 @router.websocket("/ws/twilio")
 async def ws_twilio(ws: WebSocket):
-    # Twilio verwacht subprotocol "twilio"
     await ws.accept(subprotocol="twilio")
-    if not OPENAI_KEY:
-        await ws.close(); return
+    oai = await oai_connect()
+    print("WS: Twilio connected, OpenAI up")
 
-    oai = await openai_connect()
-    print("WS: Twilio connected, OpenAI session up")
+    # NL transcript + VAD
+    await oai.send(json.dumps({
+        "type":"session.update",
+        "session":{
+            "input_audio_transcription":{"model":"gpt-4o-transcribe","language":"nl"},
+            "turn_detection":{"type":"server_vad","threshold":0.5,"silence_duration_ms":600}
+        }
+    }))
 
-    # 1) NL-setup: VAD + transcriptie NL + TTS-stem
-    async def init_openai():
+    st = State()
+
+    async def pump_in():
         try:
-            # a) sessieconfig (VAD + transcript NL)
-            await oai.send(json.dumps({
-                "type": "session.update",
-                "session": {
-                    # NL transcriptie
-                    "input_audio_transcription": { "model": "gpt-4o-transcribe", "language": "nl" },
-                    # server-side VAD (pauze detectie)
-                    "turn_detection": { "type": "server_vad", "threshold": 0.5, "silence_duration_ms": 600 },
-                }
-            }))
-            # b) openingsrespons + persona + flow
-            await oai.send(json.dumps({
-                "type": "response.create",
-                "response": {
-                    "modalities": ["audio"],
-                    "instructions": (
-                        "Je bent SARA, de Nederlandse bestelassistent voor Ristorante Adam Spanbroek. "
-                        "Spreek kort, vriendelijk en natuurlijk. "
-                        "Gespreksflow:\n"
-                        "1) Groet passend bij het moment van de dag. Vraag: 'Wat wilt u bestellen?'\n"
-                        "2) Luister naar gerechten; herhaal kort wat je hebt genoteerd.\n"
-                        "3) Vraag daarna: 'Wilt u laten bezorgen of komt u het afhalen?'\n"
-                        "4) Noem de totale prijs en de tijd (zeg 'bezorgtijd' of 'afhaaltijd'). "
-                        "   Betaalopties: bezorgen = contant; afhalen = contant of pin.\n"
-                        "5) Vraag: 'Klopt dat?' en rond af.\n"
-                        "Houd zinnen kort, geen onnodige voorbeelden. Taal = Nederlands."
-                    ),
-                    "audio": { "voice": VOICE }
-                }
-            }))
-        except Exception as e:
-            print("OpenAI init error:", e)
-
-    # Twilio -> OpenAI (caller audio → ASR → antwoord)
-    async def pump_twilio_to_openai():
-        try:
-            started = False
+            opened=False
             while True:
                 raw = await ws.receive_text()
-                msg = json.loads(raw)
-                ev = msg.get("event")
+                m = json.loads(raw); ev=m.get("event")
 
-                if ev == "start":
-                    if not started:
-                        started = True
-                        await init_openai()
+                if ev=="start" and not opened:
+                    opened=True
+                    ts = cf.time_status(cf.now_ams())
+                    if ts and any(k in ts.lower() for k in ("gesloten","niet geopend")):
+                        await say(oai, ts)
+                    else:
+                        await say(oai, "Goedendag, u spreekt met Sara, de belassistent van Ristorante Adam Spanbroek. Wat wilt u bestellen?")
 
-                elif ev == "media":
-                    # μ-law → PCM16 → naar OAI buffer
-                    ulaw_b64 = msg["media"]["payload"]
-                    pcm16 = ulaw_to_pcm16(base64.b64decode(ulaw_b64))
+                elif ev=="media":
+                    pcm16 = ulaw_to_pcm16(base64.b64decode(m["media"]["payload"]))
+                    await oai.send(json.dumps({"type":"input_audio_buffer.append","audio":base64.b64encode(pcm16).decode()}))
+                    await oai.send(json.dumps({"type":"input_audio_buffer.commit"}))
+                    # geen auto-response.create hier; we reageren op transcript-events
 
-                    await oai.send(json.dumps({
-                        "type": "input_audio_buffer.append",
-                        "audio": base64.b64encode(pcm16).decode()
-                    }))
-                    # commit + vraag om respons (streamend, met VAD werkt turn-taking natuurlijk)
-                    await oai.send(json.dumps({"type": "input_audio_buffer.commit"}))
-                    await oai.send(json.dumps({"type": "response.create"}))
-
-                elif ev == "stop":
+                elif ev=="stop":
                     break
-
         except Exception as e:
-            print("pump_twilio_to_openai err:", e)
+            print("IN err:", e)
         finally:
-            try:
-                await oai.send(json.dumps({"type": "session.close"}))
-            except Exception:
-                pass
+            try: await oai.send(json.dumps({"type":"session.close"}))
+            except: pass
 
-    # OpenAI -> Twilio (TTS-audio terug)
-    async def pump_openai_to_twilio():
+    async def pump_out():
         try:
             async for frame in oai:
-                try:
-                    data = json.loads(frame)
-                except Exception:
+                try: d = json.loads(frame)
+                except: continue
+                t = d.get("type")
+
+                # audio terug naar Twilio
+                if t=="output_audio_buffer.delta":
+                    ulaw = pcm16_to_ulaw(base64.b64decode(d["audio"]))
+                    await ws.send_text(json.dumps({"event":"media","media":{"payload":base64.b64encode(ulaw).decode()}}))
                     continue
 
-                t = data.get("type")
+                # transcript ontvangen → beslissen via jouw workflow
+                if t in ("input_audio_transcription.completed","response.input_audio_transcription.completed","conversation.item.input_audio_transcription.completed"):
+                    tx = d.get("transcript") or d.get("input_audio_transcription",{}).get("text") or d.get("text","")
+                    user = (tx or "").strip().lower()
+                    if not user: continue
+                    print("USER>", user)
 
-                # Audio-chunks (PCM16 b64) → μ-law → naar Twilio
-                if t == "output_audio_buffer.delta":
-                    pcm16 = base64.b64decode(data["audio"])
-                    ulaw = pcm16_to_ulaw(pcm16)
-                    await ws.send_text(json.dumps({
-                        "event": "media",
-                        "media": { "payload": base64.b64encode(ulaw).decode() }
-                    }))
+                    # update state
+                    md = detect_mode(user)
+                    if md: st.mode = md
+                    items, _ = parse_items(user)
+                    if items: st.merge(items)
 
-                # (optioneel) teksttranscript tonen in logs (handig voor debug)
-                elif t == "response.output_text.delta":
-                    # print zonder breken (Render logs)
-                    fragment = data.get("delta","")
-                    if fragment:
-                        print("TTS>", fragment)
+                    # beslis vervolgstap (alle berekeningen via cf.* + ls.get_all())
+                    if not st.items:
+                        await say(oai, "Wat wilt u bestellen?")
+                        continue
 
-                # segmentmarkering
-                elif t == "response.completed":
-                    await ws.send_text(json.dumps({ "event": "mark", "mark": { "name": "oai_done" } }))
+                    if st.items and not st.mode:
+                        await say(oai, "Wilt u laten bezorgen of komt u het afhalen?")
+                        continue
 
+                    # we hebben items + modus → berekenen
+                    s = ls.get_all()
+                    mins = cf.total_minutes(st.mode, st.items, s)
+                    tline = cf.time_phrase(st.mode, mins)
+                    summary, total = cf.summarize(st.items)
+                    pay = cf.payment_phrase(st.mode)
+
+                    yn = detect_yesno(user)
+                    if yn=="ja":
+                        await say(oai, f"Dank u wel. De bestelling staat genoteerd: {summary}. Totaal {total} euro. {tline} {pay}. Fijne avond!")
+                        continue
+                    if yn=="nee":
+                        await say(oai, "Geen probleem. Wat wilt u wijzigen of toevoegen?")
+                        continue
+
+                    await say(oai, f"Ik heb genoteerd: {summary}. Dat is in totaal {total} euro. {tline} {pay}. Klopt dat?")
+                    continue
+
+                if t=="response.completed":
+                    await ws.send_text(json.dumps({"event":"mark","mark":{"name":"oai_done"}}))
         except Exception as e:
-            print("pump_openai_to_twilio err:", e)
+            print("OUT err:", e)
 
-    t1 = asyncio.create_task(pump_twilio_to_openai())
-    t2 = asyncio.create_task(pump_openai_to_twilio())
-    await asyncio.wait([t1, t2], return_when=asyncio.FIRST_COMPLETED)
+    t1 = asyncio.create_task(pump_in())
+    t2 = asyncio.create_task(pump_out())
+    await asyncio.wait([t1,t2], return_when=asyncio.FIRST_COMPLETED)
 
-    try:
-        await oai.close()
-    except Exception:
-        pass
-    try:
-        await ws.close()
-    except Exception:
-        pass
+    try: await oai.close()
+    except: pass
+    try: await ws.close()
+    except: pass
     print("WS closed")
