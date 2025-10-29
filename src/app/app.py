@@ -6,6 +6,7 @@ from src.app.twilio_routes import router as twilio_router
 from src.app.dashboard.base import router as admin_router
 from src.infra.logs import setup_logging
 from src.infra.live_settings import ensure_table
+from src.app.ai_routes import router as ai_router
 
 setup_logging()
 app = FastAPI()
@@ -46,3 +47,4 @@ def tts_get(text: str):
 
 app.include_router(twilio_router)
 app.include_router(admin_router)
+app.include_router(ai_router)
