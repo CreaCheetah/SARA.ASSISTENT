@@ -9,3 +9,4 @@ twilio
 sqlalchemy
 psycopg2-binary
 websockets
+audioop-lts
