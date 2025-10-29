@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, conint
 from typing import Optional
-from ...infra.live_settings import get_live_settings, save_live_settings
+from ...infra import live_settings
 
 router = APIRouter()
 
@@ -9,34 +9,38 @@ class UiSaveIn(BaseModel):
     bot_enabled: Optional[bool] = None
     pastas_enabled: Optional[bool] = None
     pickup_enabled: Optional[bool] = None
-    delay_pizzas_min: Optional[conint(ge=0, le=180)] = None
-    delay_schotels_min: Optional[conint(ge=0, le=180)] = None
+    delay_pizzas_min: Optional[conint(ge=10, le=60)] = None
+    delay_schotels_min: Optional[conint(ge=10, le=60)] = None
+
 
 @router.get("/dashboard/api/settings")
 def ui_read():
-    s = get_live_settings()
+    """Retourneer huidige instellingen voor de dashboard-UI."""
+    values = live_settings.get_all()
     return {
-        "bot_enabled": bool(s["sara_active"]),
-        "pastas_enabled": bool(s["pasta_available"]),
-        "pickup_enabled": bool(s["pickup_enabled"]),
-        "delay_pizzas_min": int(s["category_delay_min"].get("pizza", 0)),
-        "delay_schotels_min": int(s["category_delay_min"].get("schotel", 0)),
-        "message": "OK",
+        "bot_enabled": values.get("bot_enabled"),
+        "pastas_enabled": values.get("pastas_enabled"),
+        "pickup_enabled": values.get("pickup_enabled"),
+        "delay_pizzas_min": values.get("delay_pizzas_min"),
+        "delay_schotels_min": values.get("delay_schotels_min"),
         "ok": True,
     }
 
+
 @router.post("/dashboard/api/settings")
 def ui_save(p: UiSaveIn):
-    s = get_live_settings()
+    """Slaat dashboardinstellingen op in de database."""
+    updates = {}
     if p.bot_enabled is not None:
-        s["sara_active"] = p.bot_enabled
+        updates["bot_enabled"] = p.bot_enabled
     if p.pastas_enabled is not None:
-        s["pasta_available"] = p.pastas_enabled
+        updates["pastas_enabled"] = p.pastas_enabled
     if p.pickup_enabled is not None:
-        s["pickup_enabled"] = p.pickup_enabled
+        updates["pickup_enabled"] = p.pickup_enabled
     if p.delay_pizzas_min is not None:
-        s["category_delay_min"]["pizza"] = int(p.delay_pizzas_min)
+        updates["delay_pizzas_min"] = p.delay_pizzas_min
     if p.delay_schotels_min is not None:
-        s["category_delay_min"]["schotel"] = int(p.delay_schotels_min)
-    save_live_settings(s)
-    return {"ok": True, "message": "Opgeslagen"}
+        updates["delay_schotels_min"] = p.delay_schotels_min
+
+    ok, msg = live_settings.set_many(updates)
+    return {"ok": ok, "message": msg}
