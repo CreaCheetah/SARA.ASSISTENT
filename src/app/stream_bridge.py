@@ -1,4 +1,6 @@
 #from __future__ import annotations
+import logging
+log = logging.getLogger("sara.ws")
 from fastapi import APIRouter, WebSocket
 import os, json, base64, asyncio, websockets
 try:
