@@ -6,10 +6,10 @@ import zoneinfo
 
 AMS = zoneinfo.ZoneInfo("Europe/Amsterdam")
 
-# Tijden
-OPEN_FROM = time(16, 0)   # 16:00
-DELIVERY_STOP = time(21, 30)  # 21:30
-CLOSE_AT = time(22, 0)    # 22:00
+# Openingstijden
+OPEN_FROM = time(16, 0)      # 16:00
+DELIVERY_STOP = time(21, 30) # 21:30 (na deze tijd geen bezorging meer)
+CLOSE_AT = time(22, 0)       # 22:00 (volledig gesloten)
 
 @dataclass
 class Item:
@@ -22,29 +22,40 @@ def now_ams() -> datetime:
     return datetime.now(tz=AMS)
 
 def greeting(dt: Optional[datetime] = None) -> str:
+    """Tijdafhankelijke openingszin voor open uren."""
     dt = dt or now_ams()
-    if dt.time() >= time(18,0):
-        return ("Goedeavond, u spreekt met Sara, de digitale belassistent van "
+    t = dt.time()
+    if t < time(12, 0):
+        return ("Goedemorgen, u spreekt met Sara, de digitale belassistent van "
                 "Ristorante Adam Spanbroek. Waarmee kan ik u helpen?")
-    return ("Goedemiddag, u spreekt met Sara, de digitale belassistent van "
+    if t < time(18, 0):
+        return ("Goedemiddag, u spreekt met Sara, de digitale belassistent van "
+                "Ristorante Adam Spanbroek. Waarmee kan ik u helpen?")
+    return ("Goedeavond, u spreekt met Sara, de digitale belassistent van "
             "Ristorante Adam Spanbroek. Waarmee kan ik u helpen?")
 
 def time_status(dt: Optional[datetime] = None) -> str:
-    """Geeft '', of een afsluit- of beperkingstekst op basis van tijd."""
+    """
+    Meldt sluiting of bezorgstop.
+    - Gesloten: volledige vriendelijke boodschap (incl. korte begroeting).
+    - Na 21:30: geen bezorging, afhalen kan nog tot 22:00.
+    - Anders: lege string.
+    """
     dt = dt or now_ams()
     t = dt.time()
     if t >= CLOSE_AT or t < OPEN_FROM:
-        return "Het restaurant is nu gesloten. Morgen vanaf vier uur help ik u graag weer met uw bestelling."
+        return ("Goeiedag, u spreekt met Sara, de digitale belassistent van "
+                "Ristorante Adam Spanbroek. Helaas zijn we op dit moment niet geopend. "
+                "Vanaf vier uur kunt u ons weer bereiken.")
     if t >= DELIVERY_STOP:
         return "Na half tien bezorgen we niet meer, maar afhalen kan nog tot tien uur."
-    return ""  # open zonder beperkingen
+    return ""
 
 def category_blocked(categories: List[str], settings: Dict) -> Optional[str]:
-    """Retourneert geblokkeerde categorie (bv. 'pasta') of None."""
-    blocked = []
+    """Geef de (eerste) geblokkeerde categorie terug of None."""
     if not settings.get("pastas_enabled", True) and "pasta" in categories:
-        blocked.append("pasta")
-    return blocked[0] if blocked else None
+        return "pasta"
+    return None
 
 def combined_order(items: List[Item]) -> bool:
     cats = {i.category for i in items if i.qty > 0}
@@ -52,8 +63,8 @@ def combined_order(items: List[Item]) -> bool:
     return (len(cats) >= 2) or (total_qty >= 2)
 
 def extra_delay_for(items: List[Item], settings: Dict) -> int:
+    """Neem de hoogste categorie-vertraging (voorkomt dubbeltellen)."""
     cats = {i.category for i in items if i.qty > 0}
-    # Neem max vertraging van aanwezige categorieën (voorkomt dubbeltellen)
     candidates = []
     if "pizza" in cats:
         candidates.append(int(settings.get("delay_pizzas_min", 0)))
@@ -62,9 +73,10 @@ def extra_delay_for(items: List[Item], settings: Dict) -> int:
     return max(candidates) if candidates else 0
 
 def total_minutes(mode: str, items: List[Item], settings: Dict) -> int:
+    """Standaardtijden + stille extra minuten per categorie."""
     mode = (mode or "").lower()
     if mode == "bezorgen":
-        base = 60
+        base = 60  # altijd 60 min
     else:  # afhalen
         base = 30 if combined_order(items) else 15
     return base + extra_delay_for(items, settings)
@@ -84,7 +96,7 @@ def summarize(items: List[Item]) -> Tuple[str, float]:
     parts = []
     total = 0.0
     for it in items:
-        if it.qty <= 0: 
+        if it.qty <= 0:
             continue
         parts.append(f"{it.qty}× {it.name}")
         total += it.qty * float(it.unit_price)
