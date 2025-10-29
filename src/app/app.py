@@ -8,6 +8,7 @@ from src.infra.logs import setup_logging
 from src.infra.live_settings import ensure_table
 from src.app.ai_routes import router as ai_router
 from src.app.dashboard import settings_adapter
+from src.app.stream_bridge import router as stream_router
 
 setup_logging()
 app = FastAPI()
@@ -50,3 +51,4 @@ app.include_router(twilio_router)
 app.include_router(admin_router)
 app.include_router(ai_router)
 app.include_router(settings_adapter.router)
+app.include_router(stream_router)
