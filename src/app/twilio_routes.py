@@ -1,13 +1,13 @@
 from __future__ import annotations
 from fastapi import APIRouter, Request, Response
 from twilio.twiml.voice_response import VoiceResponse, Gather
-
 from src.workflows.call_flow import (
     now_ams, time_status, greeting, Item,
     total_minutes, time_phrase, payment_phrase, summarize
 )
 from src.infra import live_settings
 from src.nlu.parse_order import parse_items
+import json
 
 router = APIRouter(prefix="/twilio", tags=["twilio"])
 VOICE_OPTS = dict(language="nl-NL")  # evt. voice toevoegen als je Polly gebruikt
@@ -48,13 +48,16 @@ async def inbound_call(_: Request):
 @router.post("/intent")
 async def handle_intent(request: Request):
     """
-    Vereenvoudigde intentverwerking:
-    - Bepaalt modus (bezorgen/afhalen)
-    - Parseert items uit spraak (multi-item, menukaartprijzen)
-    - Berekent tijd + bedrag en vraagt bevestiging
+    Intentverwerking met logging:
+    - Modus (bezorgen/afhalen)
+    - Multi-item parsing (meervoud/hoeveelheden)
+    - Totaal + tijd + betaalwijze
     """
     form = await request.form()
-    speech = (form.get("SpeechResult") or "").lower()
+    speech = (form.get("SpeechResult") or "").lower().strip()
+
+    # ---- logging: wat Twilio verstaan heeft
+    print(json.dumps({"twilio_speech": speech}, ensure_ascii=False))
 
     # 1) Modus bepalen
     mode = ""
@@ -62,6 +65,16 @@ async def handle_intent(request: Request):
         mode = "bezorgen"
     elif "afhaal" in speech or "afhalen" in speech:
         mode = "afhalen"
+
+    # 2) Items uit de spraak halen
+    items, misses = parse_items(speech)
+
+    # ---- logging: parserresultaat
+    print(json.dumps({
+        "mode": mode or None,
+        "parsed_items": [i.__dict__ for i in items],
+        "misses": misses
+    }, ensure_ascii=False))
 
     resp = VoiceResponse()
 
@@ -74,8 +87,6 @@ async def handle_intent(request: Request):
         resp.append(gather)
         return Response(str(resp), media_type="application/xml")
 
-    # 2) Items uit de spraak halen
-    items, misses = parse_items(speech)
     if not items:
         hint = "Noem bijvoorbeeld: twee pizza margherita en een shoarma schotel."
         resp.say(f"Welke gerechten wilt u bestellen? {hint}", **VOICE_OPTS)
@@ -112,7 +123,10 @@ async def handle_intent(request: Request):
 async def confirm_intent(request: Request):
     """Bevestigt of corrigeert de bestelling."""
     form = await request.form()
-    speech = (form.get("SpeechResult") or "").lower()
+    speech = (form.get("SpeechResult") or "").lower().strip()
+
+    # ---- logging: bevestiging
+    print(json.dumps({"confirm_speech": speech}, ensure_ascii=False))
 
     resp = VoiceResponse()
     if "ja" in speech:
@@ -125,7 +139,6 @@ async def confirm_intent(request: Request):
         resp.redirect("/twilio/intent")
         return Response(str(resp), media_type="application/xml")
 
-    # Onbegrepen antwoord
     resp.say("Ik heb u niet goed verstaan. Ik verbind u even door.", **VOICE_OPTS)
     resp.hangup()
     return Response(str(resp), media_type="application/xml")
