@@ -1,6 +1,10 @@
 from __future__ import annotations
 from fastapi import APIRouter, WebSocket
-import os, json, base64, asyncio, audioop, websockets
+import os, json, base64, asyncio, websockets
+try:
+    import audioop
+except ModuleNotFoundError:
+    from audioop_lts import audioop
 from typing import List
 
 # ── jouw workflow: ALLE businesslogica hieruit ────────────────────────────────
