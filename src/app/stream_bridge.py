@@ -1,4 +1,4 @@
-from __future__ import annotations
+#from __future__ import annotations
 from fastapi import APIRouter, WebSocket
 import os, json, base64, asyncio, websockets
 try:
@@ -63,7 +63,7 @@ async def say(oai, text: str):
 # ── Twilio WS endpoint ────────────────────────────────────────────────────────
 @router.websocket("/ws/twilio")
 async def ws_twilio(ws: WebSocket):
-    await ws.accept(subprotocol="twilio")
+    await ws.accept()
     oai = await oai_connect()
     print("WS: Twilio connected, OpenAI up")
 
